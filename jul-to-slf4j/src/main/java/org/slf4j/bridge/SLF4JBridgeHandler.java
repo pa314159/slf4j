@@ -106,6 +106,7 @@ public class SLF4JBridgeHandler extends Handler {
     private static final int DEBUG_LEVEL_THRESHOLD = Level.FINE.intValue();
     private static final int INFO_LEVEL_THRESHOLD = Level.INFO.intValue();
     private static final int WARN_LEVEL_THRESHOLD = Level.WARNING.intValue();
+    private static final int OFF_LEVEL_THRESHOLD = Level.OFF.intValue();
 
     /**
      * Adds a SLF4JBridgeHandler instance to jul's root logger.
@@ -203,10 +204,6 @@ public class SLF4JBridgeHandler extends Handler {
     }
 
     protected void callLocationAwareLogger(LocationAwareLogger lal, LogRecord record) {
-        if( isOFF(record) ) {
-            return;
-        }
-
         int julLevelValue = record.getLevel().intValue();
         int slf4jLevel;
 
@@ -226,10 +223,6 @@ public class SLF4JBridgeHandler extends Handler {
     }
 
     protected void callPlainSLF4JLogger(Logger slf4jLogger, LogRecord record) {
-        if( isOFF(record) ) {
-            return;
-        }
-
         String i18nMessage = getMessageI18N(record);
         int julLevelValue = record.getLevel().intValue();
         if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
@@ -243,11 +236,6 @@ public class SLF4JBridgeHandler extends Handler {
         } else {
             slf4jLogger.error(i18nMessage, record.getThrown());
         }
-    }
-
-    private boolean isOFF( LogRecord record )
-    {
-        return Level.OFF.equals( record.getLevel() );
     }
 
     /**
@@ -298,8 +286,14 @@ public class SLF4JBridgeHandler extends Handler {
      *               and is not published.
      */
     public void publish(LogRecord record) {
-        // Silently ignore null records.
-        if (record == null) {
+        // Silently ignore null records
+        if (record == null ) {
+            return;
+        }
+
+        // https://jira.qos.ch/browse/SLF4J-429
+        // JUL also checks for and OFF levels, do the same here
+        if (record.getLevel().intValue() == OFF_LEVEL_THRESHOLD) {
             return;
         }
 
