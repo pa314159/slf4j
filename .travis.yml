@@ -1,4 +1,6 @@
 language: java
 notifications:
   email:
-      - notification@qos.ch
+    - notification@qos.ch
+    - pa314159@gmail.com
+
